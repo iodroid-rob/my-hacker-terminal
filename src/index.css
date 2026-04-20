@@ -18,3 +18,21 @@
   animation: shake 0.5s;
   animation-iteration-count: infinite;
 }
+
+@keyframes glitch {
+  0% { transform: translate(0); clip-path: inset(45% 0 50% 0); }
+  10% { transform: translate(-5px, -5px); clip-path: inset(10% 0 85% 0); }
+  20% { transform: translate(5px, 5px); clip-path: inset(80% 0 5% 0); }
+  30% { transform: translate(-5px, 10px); clip-path: inset(30% 0 60% 0); }
+  40% { transform: translate(10px, -5px); clip-path: inset(50% 0 40% 0); }
+  50% { transform: translate(-10px, 5px); clip-path: inset(10% 0 80% 0); }
+  60% { transform: translate(5px, -10px); clip-path: inset(70% 0 20% 0); }
+  70% { transform: translate(-5px, 5px); clip-path: inset(20% 0 70% 0); }
+  80% { transform: translate(10px, 10px); clip-path: inset(40% 0 50% 0); }
+  90% { transform: translate(-10px, -10px); clip-path: inset(60% 0 30% 0); }
+  100% { transform: translate(0); clip-path: inset(0); }
+}
+
+.animate-glitch {
+  animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+}

@@ -290,6 +290,9 @@ export default function Terminal() {
                 setHistory(prev => [...prev.slice(-300), { role: 'system', text: item.text, type: 'text' }]);
             }, item.wait);
         });
+
+        setIsGlitching(true);
+        setTimeout(() => setIsGlitching(false), 1200);
     };
 
     const handleNodesClick = (e: MouseEvent) => {
@@ -358,6 +361,8 @@ export default function Terminal() {
         e.preventDefault();
         setShowRedaction(true);
         setIsRedacting(false);
+        setIsRedacted(true);
+        setTimeout(() => setIsRedacted(false), 2500);
     };
 
     useEffect(() => {
@@ -660,7 +665,7 @@ export default function Terminal() {
     ];
 
     return (
-        <div className={`bg-background text-on-surface antialiased h-screen h-[100dvh] w-full overflow-hidden flex flex-col selection:bg-primary selection:text-on-primary transition-all duration-75 ${isGlitching ? 'animate-pulse translate-x-1 -translate-y-1 skew-x-2 contrast-150 grayscale' : ''}`}>
+        <div className={`bg-background text-on-surface antialiased h-screen h-[100dvh] w-full overflow-hidden flex flex-col selection:bg-primary selection:text-on-primary transition-all duration-75 ${isGlitching ? 'animate-glitch' : ''}`}>
             {/* TopAppBar */}
             <header className="flex justify-between items-center w-full px-6 py-4 bg-zinc-950 docked full-width top-0 border-none glow-sm shadow-[#6bfb9a]/10 z-50 fixed">
                 <div className="flex items-center gap-8">
@@ -684,7 +689,7 @@ export default function Terminal() {
 
             {/* Terminal View */}
             {activeTab === 'terminal' && (
-                <div className={`flex flex-1 pt-[72px] relative overflow-hidden w-full h-full bg-surface ${isRedacted ? '[&_*]:!bg-zinc-800 [&_*]:!text-zinc-800 transition-colors duration-75' : ''}`}>
+                <div className={`flex flex-1 pt-[72px] relative overflow-hidden w-full h-full bg-surface ${isRedacted ? 'transition-all duration-500 filter blur-sm brightness-50 grayscale' : ''}`}>
                     <div className="absolute inset-0 scanline z-50 mix-blend-overlay mt-[72px] pointer-events-none"></div>
                     <div className="w-full h-full flex flex-col p-6 md:p-8 overflow-y-auto z-10 pb-24 md:pb-8">
                         <div className="max-w-7xl mx-auto w-full">
@@ -916,7 +921,7 @@ export default function Terminal() {
             {/* System Config View */}
             {activeTab === 'sys_config' && (
                 <div className="flex flex-1 pt-[72px] relative w-full h-full bg-surface">
-                    <main className={`flex-1 p-6 md:p-8 overflow-y-auto h-full w-full ${isRedacted ? '[&_*]:!bg-zinc-800 [&_*]:!text-zinc-800 transition-colors duration-75' : ''}`}>
+                    <main className={`flex-1 p-6 md:p-8 overflow-y-auto h-full w-full ${isRedacted ? 'transition-all duration-500 filter blur-sm brightness-50 grayscale' : ''}`}>
                         <div className="max-w-4xl mx-auto pb-24 md:pb-8">
                             <div className="mb-8">
                                 <h1 className="font-headline text-display-sm text-primary tracking-widest font-bold uppercase mb-2">[ SYS_CONFIG.JSON ]</h1>
