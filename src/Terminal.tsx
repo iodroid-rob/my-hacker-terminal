@@ -112,15 +112,15 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     },
     groq: {
         id: 'groq',
-        name: 'Groq    (LLaMA 3.1 8B)',
-        model: 'llama-3.1-8b-instant',
+        name: 'Groq    (Llama 3 70B)',
+        model: 'llama3-70b-8192',
         supportsImages: false,
         buildTextRequest: (prompt, apiKey) => ({
             url: 'https://api.groq.com/openai/v1/chat/completions',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: prompt }] })
+                body: JSON.stringify({ model: 'llama3-70b-8192', messages: [{ role: 'user', content: prompt }] })
             }
         }),
         parseTextResponse: (data) => {
@@ -164,27 +164,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
             return d.message.content[0].text;
         }
     },
-    nvidia: {
-        id: 'nvidia',
-        name: 'Groq (Llama 3 70B)',
-        model: 'llama3-70b-8192',
-        supportsImages: false,
-        buildTextRequest: (prompt, apiKey) => ({
-            url: 'https://api.groq.com/openai/v1/chat/completions',
-            options: {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({
-                    model: 'llama3-70b-8192',
-                    messages: [{ role: 'user', content: prompt }]
-                })
-            }
-        }),
-        parseTextResponse: (data) => {
-            const d = data as { choices: { message: { content: string } }[] };
-            return d.choices[0].message.content;
-        }
-    }
+
 };
 
 const PROVIDER_IDS = Object.keys(PROVIDERS);
@@ -208,7 +188,7 @@ export default function Terminal() {
     const [history, setHistory] = useState<HistoryEntry[]>(INITIAL_HISTORY);
     const [inputValue, setInputValue] = useState<string>('');
     const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
-    const [activeProvider, setActiveProvider] = useState<string>('openai');
+    const [activeProvider, setActiveProvider] = useState<string>('groq');
 
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -386,7 +366,7 @@ export default function Terminal() {
                 { role: 'system', text: '║  auth <prov> <key>  → Authorize a neural link         ║', type: 'text' },
                 { role: 'system', text: '║  sudo <prompt>      → Route text query to active AI   ║', type: 'text' },
                 { role: 'system', text: '║  sudo apt <prompt>  → Generate image                  ║', type: 'text' },
-                { role: 'system', text: '║  sudo code <prompt> → Generate code via MiniMax M2.7  ║', type: 'text' },
+                { role: 'system', text: '║  sudo code <prompt> → Generate code via Groq LPU Matrix  ║', type: 'text' },
                 { role: 'system', text: '╚══════════════════════════════════════════════════════╝', type: 'text' },
             ]);
         } else if (baseCmd === 'whoami') {
@@ -531,7 +511,7 @@ export default function Terminal() {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiKeys['nvidia'] || currentKey}`
+                            'Authorization': `Bearer ${currentKey}`
                         },
                         body: JSON.stringify({
                             model: "llama3-70b-8192",
@@ -597,7 +577,7 @@ export default function Terminal() {
 
     const projectNodes = [
         { id: "NODE_01", name: "F1_TELEMETRY_ENGINE", status: "DATA_STREAM_ACTIVE", protocols: ["Python", "Pandas", "WebSockets"], link: "#", desc: "Real-time kinetic data simulation and analysis." },
-        { id: "NODE_02", name: "KINETIC_CONSOLE", status: "LOCALHOST_SECURE", protocols: ["React", "Tailwind", "MiniMax AI"], link: "#", desc: "Zero-retention neural link AI wrapper. (Current Instance)" },
+        { id: "NODE_02", name: "KINETIC_CONSOLE", status: "LOCALHOST_SECURE", protocols: ["React", "Tailwind", "Groq LPU"], link: "#", desc: "Zero-retention neural link AI wrapper. (Current Instance)" },
         { id: "NODE_03", name: "PROJECT_CLASSIFIED", status: "PENDING_DEPLOYMENT", protocols: ["ENCRYPTED", "ENCRYPTED"], link: "#", desc: "Awaiting encrypted payload upload. Access restricted." }
     ];
 
