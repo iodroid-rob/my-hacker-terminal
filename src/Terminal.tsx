@@ -170,7 +170,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
         model: 'minimax-m2.7',
         supportsImages: true,
         buildTextRequest: (prompt, apiKey) => ({
-            url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+            url: 'https://nvidia-proxy.priyamarora6116.workers.dev/v1/chat/completions',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -188,7 +188,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
             return d.choices[0].message.content;
         },
         buildImageRequest: (prompt, apiKey) => ({
-            url: 'https://ai.api.nvidia.com/v1/genai/stabilityai/sdxl',
+            url: 'https://nvidia-proxy.priyamarora6116.workers.dev/v1/genai/stabilityai/sdxl',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -583,7 +583,7 @@ export default function Terminal() {
                 setHistory((prev) => [...prev, { role: 'system', text: '[NVIDIA NIM] Compiling neural coding matrix via MiniMax M2.7...', type: 'text' }]);
 
                 try {
-                    const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+                    const response = await fetch('https://nvidia-proxy.priyamarora6116.workers.dev/v1/chat/completions', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
