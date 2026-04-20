@@ -516,7 +516,7 @@ export default function Terminal() {
                 return;
             }
 
-            } else if (isCode) {
+            if (isCode) {
                 // --- CODE GENERATION LOGIC (GROQ LPU) ---
                 const prompt = args.slice(2).join(' ');
                 if (!prompt) {
