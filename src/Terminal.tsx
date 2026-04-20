@@ -365,7 +365,7 @@ export default function Terminal() {
                 { role: 'system', text: '║  provider <name>    → Switch active AI backend        ║', type: 'text' },
                 { role: 'system', text: '║  auth <prov> <key>  → Authorize a neural link         ║', type: 'text' },
                 { role: 'system', text: '║  sudo <prompt>      → Route text query to active AI   ║', type: 'text' },
-                { role: 'system', text: '║  sudo apt <prompt>  → Generate image                  ║', type: 'text' },
+                { role: 'system', text: '║  sudo image <prompt> → Synthesize visual data via AI    ║', type: 'text' },
                 { role: 'system', text: '║  sudo code <prompt> → Generate code via Groq LPU Matrix  ║', type: 'text' },
                 { role: 'system', text: '╚══════════════════════════════════════════════════════╝', type: 'text' },
             ]);
@@ -447,7 +447,7 @@ export default function Terminal() {
 
             // ── sudo: AI query routing ──
         } else if (baseCmd === 'sudo') {
-            const isApt = args[1]?.toLowerCase() === 'apt';
+            const isImage = args[1]?.toLowerCase() === 'image' || args[1]?.toLowerCase() === 'apt';
             const isCode = args[1]?.toLowerCase() === 'code';
             const isScriptKiddie = args[1]?.toLowerCase() === 'script' && args[2]?.toLowerCase() === 'kiddie';
 
@@ -483,6 +483,21 @@ export default function Terminal() {
                         await new Promise((r) => setTimeout(r, 60));
                     }
                 })();
+                return;
+            }
+
+            if (isImage) {
+                const prompt = args.slice(2).join(' ');
+                if (!prompt) {
+                    setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] Missing prompt. Usage: sudo image <prompt>', type: 'text' }]);
+                    return;
+                }
+
+                setHistory((prev) => [...prev, { role: 'system', text: '[IMAGE_MATRIX] Rendering visual data...', type: 'text' }]);
+
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=768&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
+
+                setHistory((prev) => [...prev, { role: 'system', text: imageUrl, type: 'image' }]);
                 return;
             }
 
@@ -639,7 +654,7 @@ export default function Terminal() {
                                                 {entry.text}
                                             </span>
                                         ) : (
-                                            <img src={entry.text} alt="AI Generated" className="mt-2 border-2 border-primary max-w-sm rounded shadow-glow-sm" />
+                                            <img src={entry.text} alt="AI Generated" className="mt-2 border-2 border-zinc-800 p-1 max-w-sm rounded shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
                                         )}
                                     </div>
                                 ))}
