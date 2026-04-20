@@ -170,7 +170,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
         model: 'minimax-m2.7',
         supportsImages: true,
         buildTextRequest: (prompt, apiKey) => ({
-            url: '/api/nim/v1/chat/completions',
+            url: 'https://integrate.api.nvidia.com/v1/chat/completions',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -188,7 +188,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
             return d.choices[0].message.content;
         },
         buildImageRequest: (prompt, apiKey) => ({
-            url: '/api/nvidia/v1/genai/stabilityai/sdxl',
+            url: 'https://ai.api.nvidia.com/v1/genai/stabilityai/sdxl',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${apiKey}` },
@@ -578,7 +578,7 @@ export default function Terminal() {
                 setHistory((prev) => [...prev, { role: 'system', text: '[NVIDIA NIM] Compiling neural coding matrix via MiniMax M2.7...', type: 'text' }]);
 
                 try {
-                    const response = await fetch('/api/nim/v1/chat/completions', {
+                    const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -945,8 +945,8 @@ export default function Terminal() {
                                         {'    '}<span className="text-green-400">"Node.js"</span><span className="text-zinc-500">{", "}</span>{'\n'}
                                         {'    '}<span className="text-green-400">"Tailwind"</span>{'\n'}
                                         {'  '}<span className="text-zinc-500">{"],"}</span>{'\n'}
-                                        {'  '}<span className="text-blue-400">"comms_uplink"</span><span className="text-zinc-500">{": "}</span><a href="mailto:your.email@example.com" className="text-green-400 hover:text-green-300 transition-colors underline decoration-green-400/30 underline-offset-4">"mailto:your.email@example.com"</a><span className="text-zinc-500">{","}</span>{'\n'}
-                                        {'  '}<span className="text-blue-400">"github_node"</span><span className="text-zinc-500">{": "}</span><a href="https://github.com/iodroid-rob" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 transition-colors underline decoration-green-400/30 underline-offset-4">"https://github.com/pryam"</a>{'\n'}
+                                        {'  '}<span className="text-blue-400">"comms_uplink"</span><span className="text-zinc-500">{": "}</span><a href="mailto:priyamarora6116@gmail.com" className="text-green-400 hover:text-green-300 transition-colors underline decoration-green-400/30 underline-offset-4">"mailto:priyamarora6116@gmail.com"</a><span className="text-zinc-500">{","}</span>{'\n'}
+                                        {'  '}<span className="text-blue-400">"github_node"</span><span className="text-zinc-500">{": "}</span><a href="https://github.com/iodroid-rob" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 transition-colors underline decoration-green-400/30 underline-offset-4">"https://github.com/iodroid-rob"</a>{'\n'}
                                         <span className="text-zinc-500">{"}"}</span><span className="text-zinc-400 animate-pulse font-bold ml-1">_</span>
                                     </div>
                                 </div>

@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+#  KINETIC CONSOLE V4.2
+**Status:** `[DEPLOYED]` | **Encryption:** `AES-256-GCM` | **Operator:** `Pryam`
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **WARNING:** Unauthorized access to this terminal is strictly prohibited under the Neural Network Security Act. All keystrokes are being logged. Execute at your own risk.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠 OVERVIEW
+The **Kinetic Console** is a zero-retention, high-performance AI shell designed for elite software engineering and system infiltration simulations. It utilizes the **MiniMax M2.7** neural matrix via **NVIDIA NIM** to provide sub-second code generation and technical intelligence.
 
-## React Compiler
+### Core Features:
+- **Neural Coding Matrix:** High-speed code compilation via `sudo code`.
+- **Network Topology:** Visual node tracking for active portfolio projects.
+- **Auto-Redaction:** Sensitive data is automatically scrubbed upon detection.
+- **Volatile Memory:** API keys are never stored on disk—purely session-based.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+##  INSTALLATION
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+To clone this terminal into your local environment:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+git clone [https://github.com/iodroid-rob/my-hacker-terminal.git](https://github.com/iodroid-rob/my-hacker-terminal.git)
+cd my-hacker-terminal
+npm install
+npm run dev
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+###available commands 
+Command,Description
+help,Display all authorized system commands.
+auth <key>,Establish secure uplink with NVIDIA NIM services.
+sudo <code>,Query the neural matrix for code generation.
+clear,Wipe terminal buffer and reset display.
+exit,Terminate session and clear volatile memory.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+⚠️ SYSTEM VULNERABILITIES (EASTER EGGS)
+The console contains several "volatile" sectors. Operators are advised to avoid interacting with the SCANNER, NODES, or DASHBOARD unless they are prepared for system-wide instability or counter-trace protocols.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Abort Command: Ctrl + C (Force kill active loops/virus).
