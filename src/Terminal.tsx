@@ -166,38 +166,23 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     },
     nvidia: {
         id: 'nvidia',
-        name: 'NVIDIA  (MiniMax / SDXL)',
-        model: 'minimax-m2.7',
-        supportsImages: true,
+        name: 'Groq (Llama 3 70B)',
+        model: 'llama3-70b-8192',
+        supportsImages: false,
         buildTextRequest: (prompt, apiKey) => ({
-            url: 'https://nvidia-proxy.priyamarora6116.workers.dev/v1/chat/completions',
+            url: 'https://api.groq.com/openai/v1/chat/completions',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
                 body: JSON.stringify({
-                    model: 'minimaxai/minimax-m2.7',
-                    messages: [{ role: 'user', content: prompt }],
-                    temperature: 1,
-                    top_p: 0.95,
-                    max_tokens: 8192
+                    model: 'llama3-70b-8192',
+                    messages: [{ role: 'user', content: prompt }]
                 })
             }
         }),
         parseTextResponse: (data) => {
             const d = data as { choices: { message: { content: string } }[] };
             return d.choices[0].message.content;
-        },
-        buildImageRequest: (prompt, apiKey) => ({
-            url: 'https://nvidia-proxy.priyamarora6116.workers.dev/v1/genai/stabilityai/sdxl',
-            options: {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ text_prompts: [{ text: prompt, weight: 1 }], cfg_scale: 7, height: 1024, width: 1024, samples: 1, steps: 30 })
-            }
-        }),
-        parseImageResponse: (data) => {
-            const d = data as { artifacts: { base64: string }[] };
-            return `data:image/png;base64,${d.artifacts[0].base64}`;
         }
     }
 };
@@ -531,66 +516,25 @@ export default function Terminal() {
                 return;
             }
 
-            if (isApt) {
-                // --- IMAGE GENERATION LOGIC ---
-                const prompt = args.slice(2).join(' ');
-                if (!prompt) {
-                    setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] Missing prompt. Usage: sudo apt <prompt>', type: 'text' }]);
-                    return;
-                }
-
-                if (!provider.supportsImages || !provider.buildImageRequest || !provider.parseImageResponse) {
-                    setHistory((prev) => [...prev,
-                    { role: 'system', text: `[ERROR] ${provider.name} does not support image generation.`, type: 'text' },
-                    { role: 'system', text: '[INFO] Switch to OpenAI: provider openai', type: 'text' }
-                    ]);
-                    return;
-                }
-
-                setHistory((prev) => [...prev, { role: 'system', text: `[${activeProvider.toUpperCase()}] Initiating neural render via ${provider.name}...`, type: 'text' }]);
-                setHistory((prev) => [...prev, { role: 'system', text: 'Routing through decentralized image matrix... Bypassing dead nodes...', type: 'text' }]);
-
-                try {
-                    // Inject aesthetic boost
-                    const visualStyle = ", shot on 35mm lens, f/1.8, cinematic lighting, hyper-realistic, candid atmosphere, 8k resolution, highly detailed";
-                    const { url, options } = provider.buildImageRequest(prompt + visualStyle, currentKey);
-
-                    const response = await fetch(url, options);
-                    if (!response.ok) {
-                        const errBody = await response.text().catch(() => '');
-                        if (response.status === 502 || errBody.includes('<html')) {
-                            throw new Error('502 GATEWAY OFFLINE: NVIDIA upstream node unreachable or overloaded.');
-                        }
-                        throw new Error(`${response.status} ${response.statusText}${errBody ? ': ' + errBody.slice(0, 200) : ''}`);
-                    }
-
-                    const data = await response.json();
-                    const imageUrl = provider.parseImageResponse(data);
-
-                    setHistory((prev) => [...prev, { role: 'system', text: imageUrl, type: 'image' }]);
-                } catch (error) {
-                    const e = error as Error;
-                    setHistory((prev) => [...prev, { role: 'system', text: `[ERROR] Render failed: ${e.message}`, type: 'text' }]);
-                }
             } else if (isCode) {
-                // --- CODE GENERATION LOGIC (NVIDIA NIM) ---
+                // --- CODE GENERATION LOGIC (GROQ LPU) ---
                 const prompt = args.slice(2).join(' ');
                 if (!prompt) {
                     setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] Missing prompt. Usage: sudo code <prompt>', type: 'text' }]);
                     return;
                 }
 
-                setHistory((prev) => [...prev, { role: 'system', text: '[NVIDIA NIM] Compiling neural coding matrix via MiniMax M2.7...', type: 'text' }]);
+                setHistory((prev) => [...prev, { role: 'system', text: '[GROQ LPU MATRIX] Compiling request at hyper-speed...', type: 'text' }]);
 
                 try {
-                    const response = await fetch('https://nvidia-proxy.priyamarora6116.workers.dev/v1/chat/completions', {
+                    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${apiKeys['nvidia'] || currentKey}`
                         },
                         body: JSON.stringify({
-                            model: "minimaxai/minimax-m2.7",
+                            model: "llama3-70b-8192",
                             messages: [
                                 { role: "system", content: "You are an elite senior software engineer. Output only clean, highly optimized code with brief, hacker-style technical comments. Do not use markdown backticks in the final output, just return raw formatted text so it looks natural in a terminal." },
                                 { role: "user", content: prompt }
@@ -604,7 +548,7 @@ export default function Terminal() {
                     if (!response.ok) {
                         const errBody = await response.text().catch(() => '');
                         if (response.status === 502 || errBody.includes('<html')) {
-                            throw new Error('502 GATEWAY OFFLINE: NVIDIA upstream node unreachable. The model "minimaxai/minimax-m2.7" may be offline or invalid.');
+                            throw new Error('502 GATEWAY OFFLINE: GROQ upstream node unreachable. The model "llama3-70b-8192" may be offline or invalid.');
                         }
                         throw new Error(`${response.status} ${response.statusText}${errBody ? ': ' + errBody.slice(0, 200) : ''}`);
                     }
@@ -624,7 +568,7 @@ export default function Terminal() {
                     return;
                 }
 
-                setHistory((prev) => [...prev, { role: 'system', text: `[${activeProvider.toUpperCase()}] Routing query via ${provider.name}...`, type: 'text' }]);
+                setHistory((prev) => [...prev, { role: 'system', text: `[GROQ LPU MATRIX] Routing query at hyper-speed...`, type: 'text' }]);
 
                 try {
                     const { url, options } = provider.buildTextRequest(prompt, currentKey);
@@ -633,7 +577,7 @@ export default function Terminal() {
                     if (!response.ok) {
                         const errBody = await response.text().catch(() => '');
                         if (response.status === 502 || errBody.includes('<html')) {
-                            throw new Error('502 GATEWAY OFFLINE: NVIDIA upstream node unreachable. The model "minimaxai/minimax-m2.7" may be offline or invalid.');
+                            throw new Error('502 GATEWAY OFFLINE: GROQ upstream node unreachable. The model "llama3-70b-8192" may be offline or invalid.');
                         }
                         throw new Error(`${response.status} ${response.statusText}${errBody ? ': ' + errBody.slice(0, 200) : ''}`);
                     }
