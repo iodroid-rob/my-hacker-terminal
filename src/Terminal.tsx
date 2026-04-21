@@ -2,10 +2,12 @@ import { useState, useEffect, useRef, memo } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 
 type HistoryEntry = {
+    id: string;
     role: string;
     text: string;
     type: 'text' | 'image';
 };
+
 
 // ── Provider Registry ────────────────────────────────────────────────
 type ProviderConfig = {
@@ -170,14 +172,17 @@ const PROVIDERS: Record<string, ProviderConfig> = {
 const PROVIDER_IDS = Object.keys(PROVIDERS);
 
 // ── Initial History ──────────────────────────────────────────────────
+const generateId = () => Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+
 const INITIAL_HISTORY: HistoryEntry[] = [
-    { role: 'system', text: '[INIT] Boot sequence engaged. Loading kernel modules...', type: 'text' },
-    { role: 'system', text: '[INIT] Mounting virtual file systems: /dev, /proc, /sys', type: 'text' },
-    { role: 'system', text: '[OK] Network interface eth0 initialized. Assigned IP: 192.168.1.104', type: 'text' },
-    { role: 'system', text: '[INFO] Establishing secure connection to mainframe...', type: 'text' },
-    { role: 'system', text: '[SUCCESS] Bypass successful. Shell access granted.', type: 'text' },
-    { role: 'system', text: 'System ready. Type "help" to see available commands.', type: 'text' }
+    { id: generateId(), role: 'system', text: '[INIT] Boot sequence engaged. Loading kernel modules...', type: 'text' },
+    { id: generateId(), role: 'system', text: '[INIT] Mounting virtual file systems: /dev, /proc, /sys', type: 'text' },
+    { id: generateId(), role: 'system', text: '[OK] Network interface eth0 initialized. Assigned IP: 192.168.1.104', type: 'text' },
+    { id: generateId(), role: 'system', text: '[INFO] Establishing secure connection to mainframe...', type: 'text' },
+    { id: generateId(), role: 'system', text: '[SUCCESS] Bypass successful. Shell access granted.', type: 'text' },
+    { id: generateId(), role: 'system', text: 'System ready. Type "help" to see available commands.', type: 'text' }
 ];
+
 
 // ── Components ──────────────────────────────────────────────────────
 
@@ -206,7 +211,7 @@ const TerminalImage = ({ src }: { src: string }) => {
 
 const HistoryItem = memo(({ entry }: { entry: HistoryEntry }) => {
     return (
-        <div className={`flex gap-4 ${entry.role === 'user' ? 'text-secondary' : 'text-on-surface'}`}>
+        <div key={entry.id} className={`flex gap-4 ${entry.role === 'user' ? 'text-secondary' : 'text-on-surface'}`}>
             {entry.type === 'text' ? (
                 <span className={`whitespace-pre-wrap leading-relaxed ${entry.text.includes('[ERROR]') || entry.text.includes('[CRITICAL]') ? 'text-error' :
                     entry.text.includes('[WARN]') ? 'text-amber-500' :
@@ -224,13 +229,14 @@ const HistoryItem = memo(({ entry }: { entry: HistoryEntry }) => {
 const TerminalHistory = memo(({ history, bottomRef }: { history: HistoryEntry[], bottomRef: React.RefObject<HTMLDivElement | null> }) => {
     return (
         <div className="space-y-4 font-mono text-sm mb-12">
-            {history.map((entry, index) => (
-                <HistoryItem key={index} entry={entry} />
+            {history.map((entry) => (
+                <HistoryItem key={entry.id} entry={entry} />
             ))}
             <div ref={bottomRef} />
         </div>
     );
 });
+
 
 
 export default function Terminal() {
@@ -243,6 +249,12 @@ export default function Terminal() {
     const [inputValue, setInputValue] = useState<string>('');
     const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
     const [activeProvider, setActiveProvider] = useState<string>('groq');
+    
+    const addToHistory = (newEntries: Omit<HistoryEntry, 'id'> | Omit<HistoryEntry, 'id'>[]) => {
+        const entries = Array.isArray(newEntries) ? newEntries : [newEntries];
+        const taggedEntries = entries.map(e => ({ ...e, id: generateId() }));
+        setHistory(prev => [...prev, ...taggedEntries].slice(-50));
+    };
 
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -269,11 +281,10 @@ export default function Terminal() {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.key.toLowerCase() === 'c' && (isRunningRef.current || isPrankingRef.current)) {
-                isRunningRef.current = false;
                 isPrankingRef.current = false;
                 setPopups([]);
                 // Prefixing with [ERROR] triggers the existing red styling
-                setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] ^C [PROCESS TERMINATED BY USER]', type: 'text' }]);
+                addToHistory({ role: 'system', text: '[ERROR] ^C [PROCESS TERMINATED BY USER]', type: 'text' });
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -307,7 +318,7 @@ export default function Terminal() {
 
         drainSequence.forEach((item) => {
             setTimeout(() => {
-                setHistory(prev => [...prev.slice(-300), { role: 'system', text: item.text, type: 'text' }]);
+                addToHistory({ role: 'system', text: item.text, type: 'text' });
             }, item.wait);
         });
 
@@ -338,7 +349,7 @@ export default function Terminal() {
         let lineCount = 0;
         const totalLines = 180;
         const burstInterval = setInterval(() => {
-            const burst: HistoryEntry[] = [];
+            const burst: Omit<HistoryEntry, 'id'>[] = [];
             for (let i = 0; i < 15; i++) {
                 const type = Math.random();
                 if (type > 0.7) {
@@ -349,7 +360,8 @@ export default function Terminal() {
                     burst.push({ role: 'system', text: `[THREAD] PID ${Math.floor(Math.random() * 9000) + 1000} ::: STREAMING ENCRYPTED_PAYLOAD...`, type: 'text' });
                 }
             }
-            setHistory(prev => [...prev.slice(-300), ...burst]);
+
+            addToHistory(burst);
             lineCount += 15;
             if (lineCount >= totalLines) {
                 clearInterval(burstInterval);
@@ -359,20 +371,20 @@ export default function Terminal() {
 
         // Phase 3-5: Countdown and Reveal
         const startCountdown = () => {
-            setTimeout(() => setHistory(prev => [...prev, { role: 'system', text: '[ERROR] [CRITICAL] SCRIPT COMPLETE. INITIATING GLOBAL LOCKDOWN IN...', type: 'text' }]), 500);
+            setTimeout(() => addToHistory({ role: 'system', text: '[ERROR] [CRITICAL] SCRIPT COMPLETE. INITIATING GLOBAL LOCKDOWN IN...', type: 'text' }), 500);
 
             for (let i = 5; i > 0; i--) {
                 setTimeout(() => {
-                    setHistory(prev => [...prev, { role: 'system', text: `[SYSTEM] ${i}...`, type: 'text' }]);
+                    addToHistory({ role: 'system', text: `[SYSTEM] ${i}...`, type: 'text' });
                 }, 1000 + (5 - i) * 1000);
             }
 
             setTimeout(() => {
-                setHistory(prev => [...prev, { role: 'system', text: '[FATAL] LOCKING DOWN ALL LOCAL AND REMOTE SYSTEM FILES... ENCRYPTION KEY DELETED.', type: 'text' }]);
+                addToHistory({ role: 'system', text: '[FATAL] LOCKING DOWN ALL LOCAL AND REMOTE SYSTEM FILES... ENCRYPTION KEY DELETED.', type: 'text' });
             }, 6500);
 
             setTimeout(() => {
-                setHistory(prev => [...prev, { role: 'system', text: "[SUCCESS] SOURCE ACQUIRED: 127.0.0.1 (Wait, that's you). RELAX, IT'S A SIKE! :)", type: 'text' }]);
+                addToHistory({ role: 'system', text: "[SUCCESS] SOURCE ACQUIRED: 127.0.0.1 (Wait, that's you). RELAX, IT'S A SIKE! :)", type: 'text' });
             }, 8500);
         };
     };
@@ -401,7 +413,7 @@ export default function Terminal() {
         const cmd = inputValue.trim();
 
         // 1. Echo user command to history
-        setHistory((prev) => [...prev, { role: 'user', text: `pryam@secure-shell:~$ ${cmd}`, type: 'text' }]);
+        addToHistory({ role: 'user', text: `pryam@secure-shell:~$ ${cmd}`, type: 'text' });
         setInputValue('');
 
         const args = cmd.split(' ');
@@ -409,8 +421,7 @@ export default function Terminal() {
 
         // 2. Command Routing Engine
         if (baseCmd === 'help') {
-            setHistory((prev) => [
-                ...prev,
+            addToHistory([
                 { role: 'system', text: '╔══════════════════════════════════════════════════════╗', type: 'text' },
                 { role: 'system', text: '║  KINETIC CONSOLE — COMMAND REFERENCE                 ║', type: 'text' },
                 { role: 'system', text: '╠══════════════════════════════════════════════════════╣', type: 'text' },
@@ -425,16 +436,13 @@ export default function Terminal() {
                 { role: 'system', text: '╚══════════════════════════════════════════════════════╝', type: 'text' },
             ]);
         } else if (baseCmd === 'whoami') {
-            setHistory((prev) => [
-                ...prev,
-                { role: 'system', text: 'Developer Bio: Senior React & Cybersecurity UI Developer. Architect of the Kinetic Console.', type: 'text' }
-            ]);
+            addToHistory({ role: 'system', text: 'Developer Bio: Senior React & Cybersecurity UI Developer. Architect of the Kinetic Console.', type: 'text' });
         } else if (baseCmd === 'clear') {
             setHistory([]);
 
             // ── providers: list all available AI backends ──
         } else if (baseCmd === 'providers') {
-            const lines: HistoryEntry[] = [
+            const lines: Omit<HistoryEntry, 'id'>[] = [
                 { role: 'system', text: '┌─────────────────────────────────────────────────┐', type: 'text' },
                 { role: 'system', text: '│  REGISTERED NEURAL BACKENDS                     │', type: 'text' },
                 { role: 'system', text: '├─────────────────────────────────────────────────┤', type: 'text' },
@@ -448,29 +456,29 @@ export default function Terminal() {
             }
             lines.push({ role: 'system', text: '└─────────────────────────────────────────────────┘', type: 'text' });
             lines.push({ role: 'system', text: 'Usage: provider <name> to switch. auth <provider> <key> to link.', type: 'text' });
-            setHistory((prev) => [...prev, ...lines]);
+            addToHistory(lines);
 
             // ── provider <name>: switch active backend ──
         } else if (baseCmd === 'provider') {
             const providerName = args[1]?.toLowerCase();
             if (!providerName) {
                 const p = PROVIDERS[activeProvider];
-                setHistory((prev) => [...prev,
-                { role: 'system', text: `[INFO] Active backend: ${p.name} (${activeProvider})`, type: 'text' },
-                { role: 'system', text: `Usage: provider <${PROVIDER_IDS.join('|')}>`, type: 'text' }
+                addToHistory([
+                    { role: 'system', text: `[INFO] Active backend: ${p.name} (${activeProvider})`, type: 'text' },
+                    { role: 'system', text: `Usage: provider <${PROVIDER_IDS.join('|')}>`, type: 'text' }
                 ]);
             } else if (PROVIDERS[providerName]) {
                 setActiveProvider(providerName);
                 const p = PROVIDERS[providerName];
                 const status = apiKeys[providerName] ? 'Neural link active.' : 'WARNING: No API key set. Use auth ' + providerName + ' <key>.';
-                setHistory((prev) => [...prev,
-                { role: 'system', text: `[SUCCESS] Switched to ${p.name}`, type: 'text' },
-                { role: 'system', text: `[STATUS] ${status}`, type: 'text' }
+                addToHistory([
+                    { role: 'system', text: `[SUCCESS] Switched to ${p.name}`, type: 'text' },
+                    { role: 'system', text: `[STATUS] ${status}`, type: 'text' }
                 ]);
             } else {
-                setHistory((prev) => [...prev,
-                { role: 'system', text: `[ERROR] Unknown provider: "${providerName}"`, type: 'text' },
-                { role: 'system', text: `Available: ${PROVIDER_IDS.join(', ')}`, type: 'text' }
+                addToHistory([
+                    { role: 'system', text: `[ERROR] Unknown provider: "${providerName}"`, type: 'text' },
+                    { role: 'system', text: `Available: ${PROVIDER_IDS.join(', ')}`, type: 'text' }
                 ]);
             }
 
@@ -482,21 +490,19 @@ export default function Terminal() {
                 const key = args.slice(2).join(' ');
                 setApiKeys((prev) => ({ ...prev, [provider]: key }));
                 setActiveProvider(provider);
-                setHistory((prev) => [...prev,
-                { role: 'system', text: `[SUCCESS] Neural link authorized for ${PROVIDERS[provider].name}.`, type: 'text' },
-                { role: 'system', text: `[INFO] Switched active backend to ${provider}.`, type: 'text' }
+                addToHistory([
+                    { role: 'system', text: `[SUCCESS] Neural link authorized for ${PROVIDERS[provider].name}.`, type: 'text' },
+                    { role: 'system', text: `[INFO] Switched active backend to ${provider}.`, type: 'text' }
                 ]);
             } else if (args.length === 2) {
                 // Backward compatible: auth <key> → defaults to active provider
                 const key = args[1];
                 setApiKeys((prev) => ({ ...prev, [activeProvider]: key }));
-                setHistory((prev) => [...prev,
-                { role: 'system', text: `[SUCCESS] Neural link authorized for ${PROVIDERS[activeProvider].name}. Key stored in volatile memory.`, type: 'text' }
-                ]);
+                addToHistory({ role: 'system', text: `[SUCCESS] Neural link authorized for ${PROVIDERS[activeProvider].name}. Key stored in volatile memory.`, type: 'text' });
             } else {
-                setHistory((prev) => [...prev,
-                { role: 'system', text: '[ERROR] Usage: auth <provider> <key>  OR  auth <key>', type: 'text' },
-                { role: 'system', text: `Providers: ${PROVIDER_IDS.join(', ')}`, type: 'text' }
+                addToHistory([
+                    { role: 'system', text: '[ERROR] Usage: auth <provider> <key>  OR  auth <key>', type: 'text' },
+                    { role: 'system', text: `Providers: ${PROVIDER_IDS.join(', ')}`, type: 'text' }
                 ]);
             }
 
@@ -534,7 +540,7 @@ export default function Terminal() {
                     while (isRunningRef.current) {
                         const baseStr = hackerStrings[Math.floor(Math.random() * hackerStrings.length)];
                         const hex = ' 0x' + Math.floor(Math.random() * 16777215).toString(16).toUpperCase().padStart(6, '0');
-                        setHistory((prev) => [...prev.slice(-100), { role: 'system', text: baseStr + hex, type: 'text' }]);
+                        addToHistory({ role: 'system', text: baseStr + hex, type: 'text' });
                         await new Promise((r) => setTimeout(r, 60));
                     }
                 })();
@@ -544,15 +550,15 @@ export default function Terminal() {
             if (isImage) {
                 const prompt = args.slice(2).join(' ');
                 if (!prompt) {
-                    setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] Missing prompt. Usage: sudo image <prompt>', type: 'text' }]);
+                    addToHistory({ role: 'system', text: '[ERROR] Missing prompt. Usage: sudo image <prompt>', type: 'text' });
                     return;
                 }
 
-                setHistory((prev) => [...prev, { role: 'system', text: '[IMAGE_MATRIX] Rendering visual data...', type: 'text' }]);
+                addToHistory({ role: 'system', text: '[IMAGE_MATRIX] Rendering visual data...', type: 'text' });
 
                 const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=768&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
 
-                setHistory((prev) => [...prev, { role: 'system', text: imageUrl, type: 'image' }]);
+                addToHistory({ role: 'system', text: imageUrl, type: 'image' });
                 return;
             }
 
@@ -560,9 +566,7 @@ export default function Terminal() {
             const currentKey = apiKeys[activeProvider];
 
             if (!currentKey) {
-                setHistory((prev) => [...prev,
-                { role: 'system', text: `[ERROR] No API key for ${provider.name}. Use 'auth ${activeProvider} <key>' first.`, type: 'text' }
-                ]);
+                addToHistory({ role: 'system', text: `[ERROR] No API key for ${provider.name}. Use 'auth ${activeProvider} <key>' first.`, type: 'text' });
                 return;
             }
 
@@ -570,11 +574,11 @@ export default function Terminal() {
                 // --- CODE GENERATION LOGIC (GROQ LPU) ---
                 const prompt = args.slice(2).join(' ');
                 if (!prompt) {
-                    setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] Missing prompt. Usage: sudo code <prompt>', type: 'text' }]);
+                    addToHistory({ role: 'system', text: '[ERROR] Missing prompt. Usage: sudo code <prompt>', type: 'text' });
                     return;
                 }
 
-                setHistory((prev) => [...prev, { role: 'system', text: '[GROQ LPU MATRIX] Compiling request at hyper-speed...', type: 'text' }]);
+                addToHistory({ role: 'system', text: '[GROQ LPU MATRIX] Compiling request at hyper-speed...', type: 'text' });
 
                 try {
                     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -605,20 +609,20 @@ export default function Terminal() {
                     const data = await response.json();
                     const textReply = data.choices[0].message.content;
 
-                    setHistory((prev) => [...prev, { role: 'system', text: `[CODE_RESPONSE]:\n${textReply}`, type: 'text' }]);
+                    addToHistory({ role: 'system', text: `[CODE_RESPONSE]:\n${textReply}`, type: 'text' });
                 } catch (error) {
                     const e = error as Error;
-                    setHistory((prev) => [...prev, { role: 'system', text: `[ERROR] ${e.message}`, type: 'text' }]);
+                    addToHistory({ role: 'system', text: `[ERROR] ${e.message}`, type: 'text' });
                 }
             } else {
                 // --- TEXT GENERATION LOGIC ---
                 const prompt = args.slice(1).join(' ');
                 if (!prompt) {
-                    setHistory((prev) => [...prev, { role: 'system', text: '[ERROR] Missing prompt. Usage: sudo <prompt>', type: 'text' }]);
+                    addToHistory({ role: 'system', text: '[ERROR] Missing prompt. Usage: sudo <prompt>', type: 'text' });
                     return;
                 }
 
-                setHistory((prev) => [...prev, { role: 'system', text: `[GROQ LPU MATRIX] Routing query at hyper-speed...`, type: 'text' }]);
+                addToHistory({ role: 'system', text: `[GROQ LPU MATRIX] Routing query at hyper-speed...`, type: 'text' });
 
                 try {
                     const { url, options } = provider.buildTextRequest(prompt, currentKey);
@@ -634,14 +638,14 @@ export default function Terminal() {
                     const data = await response.json();
                     const textReply = provider.parseTextResponse(data);
 
-                    setHistory((prev) => [...prev, { role: 'system', text: `[AI_RESPONSE]: ${textReply}`, type: 'text' }]);
+                    addToHistory({ role: 'system', text: `[AI_RESPONSE]: ${textReply}`, type: 'text' });
                 } catch (error) {
                     const e = error as Error;
-                    setHistory((prev) => [...prev, { role: 'system', text: `[ERROR] ${e.message}`, type: 'text' }]);
+                    addToHistory({ role: 'system', text: `[ERROR] ${e.message}`, type: 'text' });
                 }
             }
         } else {
-            setHistory((prev) => [...prev, { role: 'system', text: `bash: ${baseCmd}: command not found`, type: 'text' }]);
+            addToHistory({ role: 'system', text: `bash: ${baseCmd}: command not found`, type: 'text' });
         }
     };
 
