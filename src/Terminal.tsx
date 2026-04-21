@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 
 type HistoryEntry = {
@@ -112,15 +112,15 @@ const PROVIDERS: Record<string, ProviderConfig> = {
     },
     groq: {
         id: 'groq',
-        name: 'Groq    (Llama 3 70B)',
-        model: 'llama3-70b-8192',
+        name: 'Groq    (Llama 3.3 70B)',
+        model: 'llama-3.3-70b-versatile',
         supportsImages: false,
         buildTextRequest: (prompt, apiKey) => ({
             url: 'https://api.groq.com/openai/v1/chat/completions',
             options: {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ model: 'llama3-70b-8192', messages: [{ role: 'user', content: prompt }] })
+                body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }] })
             }
         }),
         parseTextResponse: (data) => {
@@ -179,6 +179,60 @@ const INITIAL_HISTORY: HistoryEntry[] = [
     { role: 'system', text: 'System ready. Type "help" to see available commands.', type: 'text' }
 ];
 
+// ── Components ──────────────────────────────────────────────────────
+
+const TerminalImage = ({ src }: { src: string }) => {
+    const [isLoading, setIsLoading] = useState(true);
+
+    return (
+        <div className="mt-2 w-full max-w-sm">
+            {isLoading && (
+                <div className="mb-2">
+                    <span className="animate-pulse text-primary font-mono text-xs tracking-tight">
+                        [DOWNLOADING_VISUAL_DATA_PACKET...]
+                    </span>
+                </div>
+            )}
+            <img
+                src={src}
+                alt="AI Generated"
+                onLoad={() => setIsLoading(false)}
+                className={`border-2 border-zinc-800 p-1 rounded shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-opacity duration-500 ${isLoading ? 'opacity-0 h-0 w-0' : 'opacity-100 max-w-full h-auto object-contain'
+                    }`}
+            />
+        </div>
+    );
+};
+
+const HistoryItem = memo(({ entry }: { entry: HistoryEntry }) => {
+    return (
+        <div className={`flex gap-4 ${entry.role === 'user' ? 'text-secondary' : 'text-on-surface'}`}>
+            {entry.type === 'text' ? (
+                <span className={`whitespace-pre-wrap leading-relaxed ${entry.text.includes('[ERROR]') || entry.text.includes('[CRITICAL]') ? 'text-error' :
+                    entry.text.includes('[WARN]') ? 'text-amber-500' :
+                        entry.text.includes('[SUCCESS]') ? 'text-primary' : ''
+                    }`}>
+                    {entry.text}
+                </span>
+            ) : (
+                <TerminalImage src={entry.text} />
+            )}
+        </div>
+    );
+});
+
+const TerminalHistory = memo(({ history, bottomRef }: { history: HistoryEntry[], bottomRef: React.RefObject<HTMLDivElement | null> }) => {
+    return (
+        <div className="space-y-4 font-mono text-sm mb-12">
+            {history.map((entry, index) => (
+                <HistoryItem key={index} entry={entry} />
+            ))}
+            <div ref={bottomRef} />
+        </div>
+    );
+});
+
+
 export default function Terminal() {
     const [activeTab, setActiveTab] = useState<'terminal' | 'network' | 'logs' | 'sys_config'>('terminal');
     const [isGlitching, setIsGlitching] = useState(false);
@@ -198,10 +252,11 @@ export default function Terminal() {
 
     // Auto-scroll to bottom whenever history changes
     useEffect(() => {
-        if (activeTab === 'terminal') {
-            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (activeTab === 'terminal' && history.length > 0) {
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
     }, [history, activeTab]);
+
 
     // Keep focus on input for a real terminal feel
     useEffect(() => {
@@ -529,7 +584,7 @@ export default function Terminal() {
                             'Authorization': `Bearer ${currentKey}`
                         },
                         body: JSON.stringify({
-                            model: "llama3-70b-8192",
+                            model: "llama-3.3-70b-versatile",
                             messages: [
                                 { role: "system", content: "You are an elite senior software engineer. Output only clean, highly optimized code with brief, hacker-style technical comments. Do not use markdown backticks in the final output, just return raw formatted text so it looks natural in a terminal." },
                                 { role: "user", content: prompt }
@@ -543,7 +598,7 @@ export default function Terminal() {
                     if (!response.ok) {
                         const errBody = await response.text().catch(() => '');
                         if (response.status === 502 || errBody.includes('<html')) {
-                            throw new Error('502 GATEWAY OFFLINE: GROQ upstream node unreachable. The model "llama3-70b-8192" may be offline or invalid.');
+                            throw new Error('502 GATEWAY OFFLINE: GROQ upstream node unreachable. The model "llama-3.3-70b-versatile" may be offline or invalid.');
                         }
                         throw new Error(`${response.status} ${response.statusText}${errBody ? ': ' + errBody.slice(0, 200) : ''}`);
                     }
@@ -572,7 +627,7 @@ export default function Terminal() {
                     if (!response.ok) {
                         const errBody = await response.text().catch(() => '');
                         if (response.status === 502 || errBody.includes('<html')) {
-                            throw new Error('502 GATEWAY OFFLINE: GROQ upstream node unreachable. The model "llama3-70b-8192" may be offline or invalid.');
+                            throw new Error('502 GATEWAY OFFLINE: GROQ upstream node unreachable. The model "llama-3.3-70b-versatile" may be offline or invalid.');
                         }
                         throw new Error(`${response.status} ${response.statusText}${errBody ? ': ' + errBody.slice(0, 200) : ''}`);
                     }
@@ -643,23 +698,8 @@ export default function Terminal() {
  | . \\  _| |_| |\\  || |___   | |   _| |_ | \\__/\\
  |_|\\_\\ \\___/\\_| \\_/\\____/   \\_/   \\___/  \\____/`}
                             </div>
-                            <div className="space-y-4 font-mono text-sm mb-12">
-                                {history.map((entry, index) => (
-                                    <div key={index} className={`flex gap-4 ${entry.role === 'user' ? 'text-secondary' : 'text-on-surface'}`}>
-                                        {entry.type === 'text' ? (
-                                            <span className={`whitespace-pre-wrap leading-relaxed ${entry.text.includes('[ERROR]') || entry.text.includes('[CRITICAL]') ? 'text-error' :
-                                                entry.text.includes('[WARN]') ? 'text-amber-500' :
-                                                    entry.text.includes('[SUCCESS]') ? 'text-primary' : ''
-                                                }`}>
-                                                {entry.text}
-                                            </span>
-                                        ) : (
-                                            <img src={entry.text} alt="AI Generated" className="mt-2 border-2 border-zinc-800 p-1 max-w-sm rounded shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
-                                        )}
-                                    </div>
-                                ))}
-                                <div ref={bottomRef} />
-                            </div>
+                            <TerminalHistory history={history} bottomRef={bottomRef} />
+
                             <div className="bg-surface-container-low p-6 border-l-4 border-primary relative mb-12 shadow-glow-sm">
                                 <div className="text-xs uppercase tracking-widest text-on-surface-variant mb-4">Current Directory</div>
                                 <div className="text-lg text-primary font-mono text-glow">/root/sys_admin/kinetic_core/</div>
