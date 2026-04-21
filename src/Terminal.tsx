@@ -252,7 +252,7 @@ export default function Terminal() {
     
     const addToHistory = (newEntries: Omit<HistoryEntry, 'id'> | Omit<HistoryEntry, 'id'>[]) => {
         const entries = Array.isArray(newEntries) ? newEntries : [newEntries];
-        const taggedEntries = entries.map(e => ({ ...e, id: generateId() }));
+        const taggedEntries = entries.map(e => ({ ...e, id: generateId() })) as HistoryEntry[];
         setHistory(prev => [...prev, ...taggedEntries].slice(-50));
     };
 
@@ -650,7 +650,7 @@ export default function Terminal() {
     };
 
     const projectNodes = [
-        { id: "NODE_01", name: "F1_TELEMETRY_ENGINE", status: "DATA_STREAM_ACTIVE", protocols: ["Python", "Pandas", "WebSockets"], link: "#", desc: "Real-time kinetic data simulation and analysis." },
+        { id: "NODE_01", name: "F1_TELEMETRY_ENGINE", status: "DATA_STREAM_ACTIVE", protocols: ["Python", "Pandas", "WebSockets"], link: "https://monza-8eq.pages.dev/", desc: "Real-time kinetic data simulation and analysis." },
         { id: "NODE_02", name: "KINETIC_CONSOLE", status: "LOCALHOST_SECURE", protocols: ["React", "Tailwind", "Groq LPU"], link: "#", desc: "Zero-retention neural link AI wrapper. (Current Instance)" },
         { id: "NODE_03", name: "PROJECT_CLASSIFIED", status: "PENDING_DEPLOYMENT", protocols: ["ENCRYPTED", "ENCRYPTED"], link: "#", desc: "Awaiting encrypted payload upload. Access restricted." }
     ];
