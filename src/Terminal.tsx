@@ -651,8 +651,8 @@ export default function Terminal() {
 
     const projectNodes = [
         { id: "NODE_01", name: "F1_TELEMETRY_ENGINE", status: "DATA_STREAM_ACTIVE", protocols: ["Python", "Pandas", "WebSockets"], link: "https://monza-8eq.pages.dev/", desc: "Real-time kinetic data simulation and analysis." },
-        { id: "NODE_02", name: "KINETIC_CONSOLE", status: "LOCALHOST_SECURE", protocols: ["React", "Tailwind", "Groq LPU"], link: "#", desc: "Zero-retention neural link AI wrapper. (Current Instance)" },
-        { id: "NODE_03", name: "PROJECT_CLASSIFIED", status: "PENDING_DEPLOYMENT", protocols: ["ENCRYPTED", "ENCRYPTED"], link: "#", desc: "Awaiting encrypted payload upload. Access restricted." }
+        { id: "NODE_02", name: "MARKET_PREDICTOR", status: "DATA_STREAM_ACTIVE", protocols: ["React", "Vite", "Tailwind"], link: "https://predictor-dbw.pages.dev/", desc: "Advanced financial prediction model and market calculator." },
+        { id: "NODE_03", name: "ENTERPRISE_ERP", status: "LIVE_SYSTEM", protocols: ["React", "TypeScript", "Tailwind"], link: "https://erp-5dq.pages.dev/", desc: "Comprehensive enterprise resource planning software suite." }
     ];
 
     const experienceLogs = [
